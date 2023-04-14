@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:pomodoro_flutter/screens/setting_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,6 +11,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  /// Scaffold의 상태를 관리하는 키입니다.
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   static const twentyFiveMinutes = 1500;
   int totalSeconds = twentyFiveMinutes;
   bool isRunning = false;
@@ -76,7 +80,43 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          // TODO: What is leading
+          leading: IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              /// Scaffold의 상태를 관리하는 키를 통해 Drawer를 엽니다.
+              _scaffoldKey.currentState!.openDrawer();
+            },
+          ),
+          backgroundColor: Theme.of(context).colorScheme.background,
+          elevation: 0,
+        ),
         backgroundColor: Theme.of(context).colorScheme.background,
+        drawer: Drawer(
+          backgroundColor: Colors.white,
+          child: Column(children: [
+            AppBar(
+              title: const Icon(
+                Icons.cancel_sharp,
+                color: Colors.black,
+              ),
+              automaticallyImplyLeading: false,
+              backgroundColor: Colors.white,
+              elevation: 0,
+            ),
+            ListTile(
+              title: const Text('wow'),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SettingScreen()));
+              },
+            )
+          ]),
+        ),
         body: Column(
           children: [
             Flexible(
