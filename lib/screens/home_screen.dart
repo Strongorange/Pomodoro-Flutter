@@ -48,10 +48,24 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void onResetPressed() {
+    timer.cancel();
+    setState(() {
+      isRunning = false;
+      totalSeconds = twentyFiveMinutes;
+    });
+  }
+
   String formatIntToTime(int seconds) {
     var duration = Duration(seconds: seconds);
     var minText = (duration.toString().split(".").first.substring(2, 7));
     return minText;
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
   }
 
   @override
@@ -77,13 +91,31 @@ class _HomeScreenState extends State<HomeScreen> {
             Flexible(
               flex: 3,
               child: Center(
-                child: IconButton(
-                    onPressed: isRunning ? onPausePressed : onStartPressed,
-                    icon: Icon(isRunning
-                        ? Icons.pause_circle_outline
-                        : Icons.play_circle_outline),
-                    iconSize: 120,
-                    color: Theme.of(context).cardColor),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                        onPressed: isRunning ? onPausePressed : onStartPressed,
+                        icon: Icon(isRunning
+                            ? Icons.pause_circle_outline
+                            : Icons.play_circle_outline),
+                        iconSize: 120,
+                        color: Theme.of(context).cardColor),
+                    isRunning
+                        ? SizedBox(
+                            height: 30,
+                            child: IconButton(
+                              onPressed: onResetPressed,
+                              icon: const Icon(
+                                  Icons.settings_backup_restore_outlined),
+                              color: Theme.of(context).cardColor,
+                            ),
+                          )
+                        : Container(
+                            height: 30,
+                          ),
+                  ],
+                ),
               ),
             ),
             Flexible(
