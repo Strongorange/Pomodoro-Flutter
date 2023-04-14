@@ -31,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// 타이머 시작 함수입니다.
   void onStartPressed() {
     timer = Timer.periodic(
       const Duration(seconds: 1),
@@ -41,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// 타이머 일시정지 함수입니다.
   void onPausePressed() {
     timer.cancel();
     setState(() {
@@ -48,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// 타이머 초기화 함수입니다.
   void onResetPressed() {
     timer.cancel();
     setState(() {
@@ -56,12 +59,14 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// 초를 분:초 형태로 변환하는 함수입니다.
   String formatIntToTime(int seconds) {
     var duration = Duration(seconds: seconds);
     var minText = (duration.toString().split(".").first.substring(2, 7));
     return minText;
   }
 
+  /// 위젯 제거시 타이머를 제거합니다.
   @override
   void dispose() {
     timer.cancel();
