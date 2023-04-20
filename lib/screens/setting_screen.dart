@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pomodoro_flutter/screens/components/square_card.dart';
+import 'package:pomodoro_flutter/components/square_card.dart';
+import 'package:pomodoro_flutter/utils/time_utils.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -9,6 +10,11 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
+  void handleChangeMinutes(int minutes) {
+    TimeClass.setTotalSeconds(minutes * 60);
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,10 +54,22 @@ class _SettingScreenState extends State<SettingScreen> {
                     padding: const EdgeInsets.all(10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        SquareCard(mainText: '25', subText: 'SESSIONS'),
-                        SquareCard(mainText: '5', subText: 'SHORT BREAKS'),
-                        SquareCard(mainText: '15', subText: 'LONG BREAKS'),
+                      children: [
+                        SquareCard(
+                          mainText: '25',
+                          subText: 'SESSIONS',
+                          handleChangeMinutes: () => handleChangeMinutes(25),
+                        ),
+                        SquareCard(
+                          mainText: '5',
+                          subText: 'SHORT BREAKS',
+                          handleChangeMinutes: () => handleChangeMinutes(5),
+                        ),
+                        SquareCard(
+                          mainText: '15',
+                          subText: 'LONG BREAKS',
+                          handleChangeMinutes: () => handleChangeMinutes(15),
+                        ),
                       ],
                     ),
                   ),

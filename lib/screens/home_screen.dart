@@ -1,21 +1,20 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:pomodoro_flutter/screens/setting_screen.dart';
+import 'package:pomodoro_flutter/utils/time_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   /// Scaffold의 상태를 관리하는 키입니다.
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   static const twentyFiveMinutes = 1500;
-  int totalSeconds = twentyFiveMinutes;
+  static int totalSeconds = TimeClass.totalSeconds;
   bool isRunning = false;
   int totalPomodoros = 0;
   late Timer timer;
@@ -63,6 +62,10 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  static void setTotalSeconds(int seconds) {
+    HomeScreenState.totalSeconds = seconds;
+  }
+
   /// 초를 분:초 형태로 변환하는 함수입니다.
   String formatIntToTime(int seconds) {
     var duration = Duration(seconds: seconds);
@@ -107,14 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
               elevation: 0,
             ),
             ListTile(
-              title: const Text('wow'),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const SettingScreen()));
-              },
-            )
+                title: const Text('wow'),
+                onTap: () {
+                  Navigator.pushNamed(context, '/settings');
+                })
           ]),
         ),
         body: Column(

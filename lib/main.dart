@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pomodoro_flutter/screens/home_screen.dart';
+import 'package:pomodoro_flutter/screens/setting_screen.dart';
 
 void main() {
   runApp(const App());
@@ -24,9 +25,11 @@ class App extends StatelessWidget {
         )),
         cardColor: const Color(0xFFF4EDDB),
       ),
-      home: const Scaffold(
-        body: HomeScreen(),
-      ),
+      routes: {
+        '/': (context) => const HomeScreen(),
+        '/settings': (context) => const SettingScreen(),
+      },
+      initialRoute: '/',
     );
   }
 }
