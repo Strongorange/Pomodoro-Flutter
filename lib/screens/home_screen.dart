@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:pomodoro_flutter/providers/time_provider.dart';
 import 'package:pomodoro_flutter/screens/setting_screen.dart';
 import 'package:provider/provider.dart';
@@ -11,14 +12,44 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// Scaffold의 상태를 관리하는 키입니다.
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  /// FIXME: Provider 의 값 사용하는 작업 완료 후 제거
-  static const twentyFiveMinutes = 1500;
-  static int totalSeconds = twentyFiveMinutes;
   late Timer timer;
+  bool isAppInBackground = false;
+
+  /// 상태창 알림을 위한 아이디입니다.
+  final int notificationId = 100;
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+  Future<void> _updateNotification(String timeText) async {
+    AndroidNotificationDetails androidPlatformChannelSpecifics =
+        const AndroidNotificationDetails(
+      'silent_channel_id',
+      'your_channel_name',
+      channelDescription: 'your_channel_description',
+      importance: Importance.low, // Importance를 low로 설정합니다.
+      priority: Priority.low, // Priority를 low로 설정합니다.
+      showWhen: false,
+      playSound: false, // playSound 속성을 false로 설정합니다.
+      visibility: NotificationVisibility.secret,
+    );
+
+    NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(
+      notificationId,
+      'Pomodoro Timer',
+      '남은 시간: $timeText', // 남은 시간을 표시합니다.
+      platformChannelSpecifics,
+      payload: 'item x',
+    );
+  }
+
+  Future<void> _cancelNotification() async {
+    await flutterLocalNotificationsPlugin.cancel(notificationId);
+  }
 
   void onTick(Timer timer) {
     final timeProvider = Provider.of<TimeProvider>(context, listen: false);
@@ -33,6 +64,9 @@ class HomeScreenState extends State<HomeScreen> {
       setState(() {
         timeProvider.setTotalSeconds(timeProvider.totalSecondsValue - 1);
       });
+    }
+    if (isAppInBackground) {
+      _updateNotification(formatIntToTime(timeProvider.totalSecondsValue));
     }
   }
 
@@ -63,7 +97,7 @@ class HomeScreenState extends State<HomeScreen> {
     timer.cancel();
     setState(() {
       timeProvider.setIsRunning(false);
-      timeProvider.setTotalSeconds(twentyFiveMinutes);
+      timeProvider.setTotalSeconds(timeProvider.twentyFiveMinutesValue);
     });
   }
 
@@ -74,11 +108,49 @@ class HomeScreenState extends State<HomeScreen> {
     return minText;
   }
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
   /// 위젯 제거시 타이머를 제거합니다.
   @override
   void dispose() {
     timer.cancel();
     super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        isAppInBackground = false;
+        _cancelNotification();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        isAppInBackground = true;
+        _updateNotification(formatIntToTime(
+            Provider.of<TimeProvider>(context, listen: false)
+                .totalSecondsValue));
+        break;
+    }
   }
 
   @override
@@ -102,16 +174,15 @@ class HomeScreenState extends State<HomeScreen> {
           backgroundColor: Colors.white,
           child: Column(children: [
             AppBar(
-              title: const Icon(
-                Icons.cancel_sharp,
-                color: Colors.black,
-              ),
               automaticallyImplyLeading: false,
               backgroundColor: Colors.white,
               elevation: 0,
             ),
             ListTile(
-              title: const Text('wow'),
+              title: const Text(
+                '설정',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              ),
               onTap: () {
                 Navigator.push(
                   context,
