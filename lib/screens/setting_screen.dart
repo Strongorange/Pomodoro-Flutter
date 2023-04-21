@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pomodoro_flutter/components/square_card.dart';
-import 'package:pomodoro_flutter/utils/time_utils.dart';
+import 'package:pomodoro_flutter/providers/time_provider.dart';
+import 'package:pomodoro_flutter/screens/home_screen.dart';
+import 'package:provider/provider.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -11,8 +13,14 @@ class SettingScreen extends StatefulWidget {
 
 class _SettingScreenState extends State<SettingScreen> {
   void handleChangeMinutes(int minutes) {
-    TimeClass.setTotalSeconds(minutes * 60);
-    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+    final timeProvider = Provider.of<TimeProvider>(context, listen: false);
+    timeProvider.setTotalSeconds(minutes * 60);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const HomeScreen(),
+      ),
+    );
   }
 
   @override
@@ -34,7 +42,7 @@ class _SettingScreenState extends State<SettingScreen> {
             Flexible(
               flex: 1,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     decoration: BoxDecoration(
@@ -73,14 +81,6 @@ class _SettingScreenState extends State<SettingScreen> {
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            Flexible(
-              flex: 1,
-              child: Column(
-                children: const [
-                  Text('wow'),
                 ],
               ),
             ),

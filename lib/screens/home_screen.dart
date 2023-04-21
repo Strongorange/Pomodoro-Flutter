@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:pomodoro_flutter/utils/time_utils.dart';
+import 'package:pomodoro_flutter/providers/time_provider.dart';
+import 'package:pomodoro_flutter/screens/setting_screen.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,57 +15,56 @@ class HomeScreenState extends State<HomeScreen> {
   /// Scaffold의 상태를 관리하는 키입니다.
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// FIXME: Provider 의 값 사용하는 작업 완료 후 제거
   static const twentyFiveMinutes = 1500;
-  static int totalSeconds = TimeClass.totalSeconds;
-  bool isRunning = false;
-  int totalPomodoros = 0;
+  static int totalSeconds = twentyFiveMinutes;
   late Timer timer;
 
   void onTick(Timer timer) {
-    if (totalSeconds == 0) {
+    final timeProvider = Provider.of<TimeProvider>(context, listen: false);
+    if (timeProvider.totalSecondsValue == 0) {
       setState(() {
-        isRunning = false;
-        totalPomodoros++;
-        totalSeconds = twentyFiveMinutes;
+        timeProvider.setIsRunning(false);
+        timeProvider.incrementPomodoros();
+        timeProvider.setTotalSeconds(timeProvider.twentyFiveMinutesValue);
       });
       timer.cancel();
     } else {
       setState(() {
-        totalSeconds--;
+        timeProvider.setTotalSeconds(timeProvider.totalSecondsValue - 1);
       });
     }
   }
 
   /// 타이머 시작 함수입니다.
   void onStartPressed() {
+    final timeProvider = Provider.of<TimeProvider>(context, listen: false);
     timer = Timer.periodic(
       const Duration(seconds: 1),
       onTick,
     );
     setState(() {
-      isRunning = true;
+      timeProvider.setIsRunning(true);
     });
   }
 
   /// 타이머 일시정지 함수입니다.
   void onPausePressed() {
+    final timeProvider = Provider.of<TimeProvider>(context, listen: false);
     timer.cancel();
     setState(() {
-      isRunning = false;
+      timeProvider.setIsRunning(false);
     });
   }
 
   /// 타이머 초기화 함수입니다.
   void onResetPressed() {
+    final timeProvider = Provider.of<TimeProvider>(context, listen: false);
     timer.cancel();
     setState(() {
-      isRunning = false;
-      totalSeconds = twentyFiveMinutes;
+      timeProvider.setIsRunning(false);
+      timeProvider.setTotalSeconds(twentyFiveMinutes);
     });
-  }
-
-  static void setTotalSeconds(int seconds) {
-    HomeScreenState.totalSeconds = seconds;
   }
 
   /// 초를 분:초 형태로 변환하는 함수입니다.
@@ -82,10 +83,10 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final timeProvider = Provider.of<TimeProvider>(context);
     return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          // TODO: What is leading
           leading: IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
@@ -110,10 +111,18 @@ class HomeScreenState extends State<HomeScreen> {
               elevation: 0,
             ),
             ListTile(
-                title: const Text('wow'),
-                onTap: () {
-                  Navigator.pushNamed(context, '/settings');
-                })
+              title: const Text('wow'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return const SettingScreen();
+                    },
+                  ),
+                );
+              },
+            ),
           ]),
         ),
         body: Column(
@@ -123,7 +132,7 @@ class HomeScreenState extends State<HomeScreen> {
               child: Container(
                 alignment: Alignment.bottomCenter,
                 child: Text(
-                  formatIntToTime(totalSeconds),
+                  formatIntToTime(timeProvider.totalSecondsValue),
                   style: TextStyle(
                     color: Theme.of(context).cardColor,
                     fontSize: 89,
@@ -139,13 +148,15 @@ class HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                        onPressed: isRunning ? onPausePressed : onStartPressed,
-                        icon: Icon(isRunning
+                        onPressed: timeProvider.isRunningValue
+                            ? onPausePressed
+                            : onStartPressed,
+                        icon: Icon(timeProvider.isRunningValue
                             ? Icons.pause_circle_outline
                             : Icons.play_circle_outline),
                         iconSize: 120,
                         color: Theme.of(context).cardColor),
-                    isRunning
+                    timeProvider.isRunningValue
                         ? SizedBox(
                             height: 30,
                             child: IconButton(
@@ -190,7 +201,7 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             Text(
-                              '$totalPomodoros',
+                              '${timeProvider.totalPomodorosValue}',
                               style: TextStyle(
                                 fontSize: 58,
                                 color: Theme.of(context)
